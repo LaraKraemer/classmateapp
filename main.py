@@ -188,7 +188,60 @@ class SearchDialog(QDialog):
 
 
 class EditDialog(QDialog):
-    pass
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Insert Student Data")
+        self.setFixedHeight(300)
+        self.setFixedWidth(300)
+
+        layout = QVBoxLayout()
+
+        # Extract items out of table and selected row
+        index = student_management.table.currentRow()
+        student_name = student_management.table.item(index, 1).text()
+        course_name = student_management.table.item(index, 2).text()
+        mobile_no = student_management.table.item(index, 3).text()
+        self.id = student_management.table.item(index, 0).text()
+
+        # Add selected student name
+        self.student_name = QLineEdit(student_name)
+        self.student_name.setPlaceholderText("Name")
+        layout.addWidget(self.student_name)
+
+        # Dropdown selected course
+        self.course_name = QComboBox()
+        courses = ['Math', 'Astronomy', 'Biology', 'Physics']
+        self.course_name.addItems(courses)
+        self.course_name.setCurrentText(course_name)
+        layout.addWidget(self.course_name)
+
+        # Add selected mobile no
+        self.student_mobile = QLineEdit(mobile_no)
+        self.student_mobile.setPlaceholderText("Mobile")
+        layout.addWidget(self.student_mobile)
+
+        # Submit button
+        button = QPushButton("Submit")
+        button.clicked.connect(self.update_student)
+        layout.addWidget(button)
+
+        self.setLayout(layout)
+
+    def update_student(self):
+        connection = sqlite3.connect("database.db")
+        cursor = connection.cursor()
+        cursor.execute("UPDATE students SET name = ?, course = ?, mobile = ? WHERE id = ?",
+                       (self.student_name.text(),
+                        self.course_name.itemText(self.course_name.currentIndex()),
+                        self.student_mobile.text(),
+                        self.id))
+
+        connection.commit()
+        cursor.close()
+        connection.close()
+
+        # load refreshed data
+        student_management.load_data()
 
 class DeleteDialog(QDialog):
     pass
