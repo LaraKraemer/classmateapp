@@ -13,6 +13,7 @@ class MainWindow(QMainWindow):
         # menu items
         file_menu_item = self.menuBar().addMenu("&File")
         help_menu_item = self.menuBar().addMenu("&Help")
+        edit_menu_item = self.menuBar().addMenu("&Edit")
 
         add_student_action = QAction("Add Student", self)
         add_student_action.triggered.connect(self.insert)
@@ -22,6 +23,9 @@ class MainWindow(QMainWindow):
         help_menu_item.addAction(about_action)
         about_action.setMenuRole(QAction.MenuRole.NoRole)
 
+        edit_action = QAction("Search", self)
+        edit_action.triggered.connect(self.search)
+        edit_menu_item.addAction(edit_action)
 
         self.table = QTableWidget() # add table
         self.table.setColumnCount(4) # set number of columns
@@ -42,11 +46,14 @@ class MainWindow(QMainWindow):
                 self.table.setItem(row_number, column_number, QTableWidgetItem(str(data)))
         connection.close()
 
-
     def insert(self):
         # generate popup window with dialog method
         dialog = InsertDialog()
         dialog.exec()
+
+    def search(self):
+        search = SearchDialog()
+        search.exec()
 
 
 class InsertDialog(QDialog):
@@ -81,6 +88,7 @@ class InsertDialog(QDialog):
 
         self.setLayout(layout)
 
+
     def add_student(self):
         name = self.student_name.text()
         # return choice of user
@@ -90,6 +98,41 @@ class InsertDialog(QDialog):
         cursor = connection.cursor()
         cursor.execute("INSERT INTO students (name, course, mobile) VALUES (?, ?, ?)",
                        (name, course, mobile))
+        connection.commit()
+        cursor.close()
+        connection.close()
+
+        # load refreshed data
+        student_management.load_data()
+
+class SearchDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Search Student")
+        self.setFixedHeight(300)
+        self.setFixedWidth(300)
+
+        layout = QVBoxLayout()
+
+        # search student name
+        self.search_name = QLineEdit()
+        self.search_name.setPlaceholderText("Name")
+        layout.addWidget(self.search_name)
+
+        # submit button
+        button = QPushButton("Search")
+        button.clicked.connect(self.search_student)
+        layout.addWidget(button)
+
+        self.setLayout(layout)
+
+    def search_student(self):
+        name = self.search_name.text()
+        # return choice of user
+        connection = sqlite3.connect("database.db")
+        cursor = connection.cursor()
+        cursor.execute("SELECT * FROM students WHERE name = ?",
+                       (name))
         connection.commit()
         cursor.close()
         connection.close()
