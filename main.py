@@ -1,3 +1,4 @@
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLabel, QGridLayout,
                              QLineEdit, QPushButton, QComboBox, QMainWindow, QTableWidget, QTableWidgetItem, QDialog)
 from PyQt6.QtGui import QAction
@@ -131,8 +132,15 @@ class SearchDialog(QDialog):
         # return choice of user
         connection = sqlite3.connect("database.db")
         cursor = connection.cursor()
-        cursor.execute("SELECT * FROM students WHERE name = ?",
-                       (name))
+        result = cursor.execute("SELECT * FROM students WHERE name = ?",
+                       (name,))
+        rows = list(result)
+        print(rows)
+        items = student_management.table.findItems(name, Qt.MatchFlag.MatchFixedString) # match name string
+        for item in items:
+            print(item)
+            student_management.table.item(item.row(), 1).setSelected(True)
+
         connection.commit()
         cursor.close()
         connection.close()
