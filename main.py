@@ -1,19 +1,27 @@
 from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLabel, QGridLayout,
                              QLineEdit, QPushButton, QComboBox, QMainWindow)
+from PyQt6.QtGui import QAction
 import sys
 
 
 class MainWindow(QMainWindow):
-    pass
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Student Management App")
 
+        file_menu_item = self.menuBar().addMenu("&File")
+        help_menu_item = self.menuBar().addMenu("&Help")
 
+        add_student_action = QAction("Add Student", self)
+        file_menu_item.addAction(add_student_action)
+
+        about_action = QAction("About", self)
+        help_menu_item.addAction(about_action)
+        about_action.setMenuRole(QAction.MenuRole.NoRole)
 
 
 app = QApplication(sys.argv)
-
-# Create a Qt widget, which will be our window.
-window = QWidget()
-window.show()  # IMPORTANT!!!!! Windows are hidden by default.
-
+student_management = MainWindow()
+student_management.show()
 # Start the event loop.
-app.exec()
+sys.exit(app.exec())
