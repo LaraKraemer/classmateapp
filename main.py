@@ -1,11 +1,10 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLabel, QGridLayout,
                              QLineEdit, QPushButton, QComboBox, QMainWindow, QTableWidget, QTableWidgetItem, QDialog,
-                             QToolBar, QStatusBar)
+                             QToolBar, QStatusBar, QMessageBox)
 from PyQt6.QtGui import QAction, QIcon
 import sys
 import sqlite3
-
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -244,7 +243,56 @@ class EditDialog(QDialog):
         student_management.load_data()
 
 class DeleteDialog(QDialog):
-    pass
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Delete Student Data")
+
+        # Items are stacks horizontal and vertical
+        layout = QGridLayout()
+
+        confirmation = QLabel("Are you sure you want to delete?")
+        yes_button = QPushButton("Yes")
+        no_button = QPushButton("No")
+
+        layout.addWidget(confirmation, 0, 0, 1, 2)
+        layout.addWidget(yes_button, 1, 0)
+        layout.addWidget(no_button, 1, 1)
+
+        self.setLayout(layout)
+
+        yes_button.clicked.connect(self.delete_student)
+        no_button.clicked.connect(self.no_update_student)
+
+
+
+    def delete_student(self):
+
+        # Get selected row index and student id
+        index = student_management.table.currentRow()
+        id = student_management.table.item(index, 0).text()
+
+        # Connect and update database
+        connection = sqlite3.connect("database.db")
+        cursor = connection.cursor()
+        cursor.execute("DELETE from students WHERE id = ?", (id, ))
+
+        # Commit changes to database
+        connection.commit()
+        cursor.close()
+        connection.close()
+
+        # Load refreshed data
+        student_management.load_data()
+
+        self.close()
+
+        confirmation_msg = QMessageBox()
+        confirmation_msg.setWindowTitle("Success")
+        confirmation_msg.setText("The record was successfully deleted")
+        confirmation_msg.exec()
+
+    def no_update_student(self):
+        pass
 
 
 app = QApplication(sys.argv)
