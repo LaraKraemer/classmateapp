@@ -21,17 +21,19 @@ class MainWindow(QMainWindow):
         add_student_action.triggered.connect(self.insert)
         file_menu_item.addAction(add_student_action)
 
-        # Add about section
+        # Add about widget
         about_action = QAction("About", self)
         help_menu_item.addAction(about_action)
         about_action.setMenuRole(QAction.MenuRole.NoRole)
         about_action.triggered.connect(self.about)
 
+        # Add search widget
         edit_action = QAction(QIcon("icons/search.png"), "Search", self)
         edit_action.triggered.connect(self.search)
         edit_menu_item.addAction(edit_action)
 
-        self.table = QTableWidget() # add table
+        # add table
+        self.table = QTableWidget()
         self.table.setColumnCount(4) # set number of columns
         self.table.setHorizontalHeaderLabels(("Id", "Name", "Course", "Mobile"))  # set table labels
         self.table.verticalHeader().setVisible(False)  # hide first index column
@@ -41,7 +43,6 @@ class MainWindow(QMainWindow):
         toolbar = QToolBar()
         toolbar.setMovable(True)
         self.addToolBar(toolbar)
-
         toolbar.addAction(add_student_action)
         toolbar.addAction(edit_action)
 
