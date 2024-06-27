@@ -21,9 +21,11 @@ class MainWindow(QMainWindow):
         add_student_action.triggered.connect(self.insert)
         file_menu_item.addAction(add_student_action)
 
+        # Add about section
         about_action = QAction("About", self)
         help_menu_item.addAction(about_action)
         about_action.setMenuRole(QAction.MenuRole.NoRole)
+        about_action.triggered.connect(self.about)
 
         edit_action = QAction(QIcon("icons/search.png"), "Search", self)
         edit_action.triggered.connect(self.search)
@@ -93,6 +95,10 @@ class MainWindow(QMainWindow):
     def delete(self):
         delete = DeleteDialog()
         delete.exec()
+
+    def about(self):
+        about = AboutDialog()
+        about.exec()
 
 class InsertDialog(QDialog):
     def __init__(self):
@@ -286,6 +292,7 @@ class DeleteDialog(QDialog):
 
         self.close()
 
+        # Add confirmation window
         confirmation_msg = QMessageBox()
         confirmation_msg.setWindowTitle("Success")
         confirmation_msg.setText("The record was successfully deleted")
@@ -293,6 +300,17 @@ class DeleteDialog(QDialog):
 
     def no_update_student(self):
         pass
+
+
+class AboutDialog(QMessageBox):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("About")
+        content = """
+        This app was created to manage student records 
+        
+        """
+        self.setText(content)
 
 
 app = QApplication(sys.argv)
