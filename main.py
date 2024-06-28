@@ -4,7 +4,23 @@ from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLabel, QGridLa
                              QToolBar, QStatusBar, QMessageBox)
 from PyQt6.QtGui import QAction, QIcon
 import sys
-import sqlite3
+import mysql.connector
+import creds
+
+
+class DatabaseConnection:
+    def __init__(self, host=creds.host, user=creds.user,
+                 password=creds.password, database=creds.database):
+        self.host = host
+        self.user = user
+        self.password = password
+        self.database = database
+
+    def connect(self):
+        connection = mysql.connector.connect(host=self.host, user=self.user,
+                                             password=self.password, database=self.database)
+        return connection
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -70,8 +86,10 @@ class MainWindow(QMainWindow):
 
     def load_data(self):
         # connect to database
-        connection = sqlite3.connect("database.db")
-        result = connection.execute("SELECT * FROM students")
+        connection = DatabaseConnection().connect()
+        cursor = connection.cursor()
+        cursor.execute("SELECT * FROM students")
+        result = cursor.fetchall()
 
         # insert data in gui table
         for row_number, row_data in enumerate(result):
@@ -133,15 +151,14 @@ class InsertDialog(QDialog):
 
         self.setLayout(layout)
 
-
     def add_student(self):
         name = self.student_name.text()
         # return choice of user
         course = self.course_name.itemText(self.course_name.currentIndex())
         mobile = self.student_mobile.text()
-        connection = sqlite3.connect("database.db")
+        connection = DatabaseConnection().connect()
         cursor = connection.cursor()
-        cursor.execute("INSERT INTO students (name, course, mobile) VALUES (?, ?, ?)",
+        cursor.execute("INSERT INTO students (name, course, mobile) VALUES (%s, %s, %s)",
                        (name, course, mobile))
         connection.commit()
         cursor.close()
@@ -174,10 +191,11 @@ class SearchDialog(QDialog):
     def search_student(self):
         name = self.search_name.text()
         # return choice of user
-        connection = sqlite3.connect("database.db")
+        connection = DatabaseConnection().connect()
         cursor = connection.cursor()
-        result = cursor.execute("SELECT * FROM students WHERE name = ?",
+        cursor.execute("SELECT * FROM students WHERE name = %s",
                        (name,))
+        result = cursor.fetchall()
         rows = list(result)
         print(rows)
         items = student_management.table.findItems(name, Qt.MatchFlag.MatchFixedString) # match name string
@@ -234,9 +252,9 @@ class EditDialog(QDialog):
         self.setLayout(layout)
 
     def update_student(self):
-        connection = sqlite3.connect("database.db")
+        connection = DatabaseConnection().connect()
         cursor = connection.cursor()
-        cursor.execute("UPDATE students SET name = ?, course = ?, mobile = ? WHERE id = ?",
+        cursor.execute("UPDATE students SET name = %s, course = %s, mobile = %s WHERE id = %s",
                        (self.student_name.text(),
                         self.course_name.itemText(self.course_name.currentIndex()),
                         self.student_mobile.text(),
@@ -270,8 +288,6 @@ class DeleteDialog(QDialog):
         yes_button.clicked.connect(self.delete_student)
         no_button.clicked.connect(self.no_update_student)
 
-
-
     def delete_student(self):
 
         # Get selected row index and student id
@@ -279,9 +295,9 @@ class DeleteDialog(QDialog):
         id = student_management.table.item(index, 0).text()
 
         # Connect and update database
-        connection = sqlite3.connect("database.db")
+        connection = DatabaseConnection().connect()
         cursor = connection.cursor()
-        cursor.execute("DELETE from students WHERE id = ?", (id, ))
+        cursor.execute("DELETE from students WHERE id = %s", (id, ))
 
         # Commit changes to database
         connection.commit()
@@ -309,7 +325,6 @@ class AboutDialog(QMessageBox):
         self.setWindowTitle("About")
         content = """
         This app was created to manage student records 
-        
         """
         self.setText(content)
 
